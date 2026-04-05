@@ -1,0 +1,113 @@
+@baseUrl = http://localhost:8080
+
+### 1. АВТОРИЗАЦИЯ
+
+### 1.1 Получить токен администратора (скопируй token из ответа)
+POST {{baseUrl}}/dummyLogin
+Content-Type: application/json
+
+{
+    "role": "admin"
+}
+
+# ВСТАВЬ ТОКЕН АДМИНА
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzc1NDg3NTIzLCJpYXQiOjE3NzU0MDExMjN9.ynYTaAAu-eidPWrlitoeeHfpLLa9IdOEjCxANkx8fAY
+POST {{baseUrl}}/dummyLogin
+Content-Type: application/json
+
+{
+    "role": "user"
+}
+
+# ВСТАВЬ ТОКЕН ПОЛЬЗОВАТЕЛЯ 
+@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMjIyMjIyMjItMjIyMi0yMjIyLTIyMjItMjIyMjIyMjIyMjIyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NzU0ODMyNDYsImlhdCI6MTc3NTM5Njg0Nn0.9RQXtTtWbXmvwYugRcT_5mvs9vpyopA2OysdeO5DemQ
+### 2. ПЕРЕГОВОРКИ (ROOMS)
+
+### 2.1 Создать переговорку (скопируй id из ответа в @roomId)
+POST {{baseUrl}}/rooms/create
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+    "name": "Конференц-зал Альфа",
+    "description": "Большой зал с проектором",
+    "capacity": 20
+}
+
+# ВСТАВЬ ID КОМНАТЫ СЮДА
+@roomId = 5ed2e561-b55e-4575-a48a-cb26473f86b0
+
+### 2.2 Список всех переговорок
+GET {{baseUrl}}/rooms/list
+Authorization: Bearer {{adminToken}}
+
+### 3. РАСПИСАНИЕ (SCHEDULE)
+### 3.1 Создать расписание (пн-пт, 9:00-18:00)
+POST {{baseUrl}}/rooms/{{roomId}}/schedule/create
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+    "daysOfWeek": [1, 2, 3, 4, 5],
+    "startTime": "09:00",
+    "endTime": "18:00"
+}
+
+### 4. СЛОТЫ (SLOTS)
+
+### 4.1 Получить слоты 
+GET {{baseUrl}}/rooms/{{roomId}}/slots/list?date=2026-04-07
+Authorization: Bearer {{adminToken}}
+
+# ВСТАВЬ ID СЛОТА СЮДА
+@slotId = 34f8972a-a366-4100-a062-3023483295c2
+
+### 5. БРОНИРОВАНИЯ (BOOKINGS)
+### 5.1 Создать бронь 
+POST {{baseUrl}}/bookings/create
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+    "slotId": "{{slotId}}"
+}
+
+#  ВСТАВЬ ID БРОНИ СЮДА
+@bookingId = 10b819fe-7ea8-4743-8e1c-2b446ef0aeea
+
+### 5.2 Мои брони
+GET {{baseUrl}}/bookings/my
+Authorization: Bearer {{userToken}}
+
+### 5.3 Отменить бронь
+POST {{baseUrl}}/bookings/{{bookingId}}/cancel
+Authorization: Bearer {{userToken}}
+
+### 5.4 Все брони (только admin)
+GET {{baseUrl}}/bookings/list?page=1&pageSize=20
+Authorization: Bearer {{adminToken}}
+
+### 6. ПРОВЕРКА ОШИБОК
+### 6.1 Проверка здоровья
+GET {{baseUrl}}/_info
+
+### 6.2 Доступ без токена (ошибка 401)
+GET {{baseUrl}}/rooms/list
+
+### 6.3 Создание комнаты от user (ошибка 403)
+POST {{baseUrl}}/rooms/create
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+    "name": "Попытка от user"
+}
+
+### 6.4 Создание брони от admin (ошибка 403)
+POST {{baseUrl}}/bookings/create
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+    "slotId": "{{slotId}}"
+}

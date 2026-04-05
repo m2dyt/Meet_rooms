@@ -1,0 +1,443 @@
+basePath: /
+host: localhost:8080
+info:
+  contact: {}
+  description: Сервис бронирования переговорок
+  title: Room Booking Service API
+  version: "1.0"
+paths:
+  /_info:
+    get:
+      description: Всегда возвращает 200 OK
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health check
+      tags:
+      - System
+  /bookings/{bookingId}/cancel:
+    post:
+      description: Отменяет бронь текущего пользователя (только user). Идемпотентная
+        операция.
+      parameters:
+      - description: ID брони
+        in: path
+        name: bookingId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: booking
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Отменить бронь
+      tags:
+      - Bookings
+  /bookings/create:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт бронь на слот от имени текущего пользователя (только user).
+        Опционально создаёт ссылку на конференцию.
+      parameters:
+      - description: Данные бронирования
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: booking
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Создать бронь
+      tags:
+      - Bookings
+  /bookings/list:
+    get:
+      description: Возвращает все брони с пагинацией (только admin)
+      parameters:
+      - description: Номер страницы (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Размер страницы (default 20, max 100)
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: bookings, pagination
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Список всех броней
+      tags:
+      - Bookings
+  /bookings/my:
+    get:
+      description: Возвращает брони текущего пользователя на будущие слоты (только
+        user)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: bookings
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Мои брони
+      tags:
+      - Bookings
+  /dummyLogin:
+    post:
+      consumes:
+      - application/json
+      description: Возвращает JWT для указанной роли (admin/user). Фиксированные UUID.
+      parameters:
+      - description: Роль
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: token
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Тестовый JWT
+      tags:
+      - Auth
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Авторизует пользователя по email и паролю, возвращает JWT
+      parameters:
+      - description: Учётные данные
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: token
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Вход
+      tags:
+      - Auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Регистрирует нового пользователя (email, пароль, роль)
+      parameters:
+      - description: Данные регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: user
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Регистрация
+      tags:
+      - Auth
+  /rooms/{roomId}/schedule/create:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт расписание доступности для переговорки (только admin, один
+        раз)
+      parameters:
+      - description: ID переговорки
+        in: path
+        name: roomId
+        required: true
+        type: string
+      - description: Расписание
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: schedule
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Создать расписание
+      tags:
+      - Schedules
+  /rooms/{roomId}/slots/list:
+    get:
+      description: Возвращает слоты, свободные для бронирования, на указанную дату
+        (admin и user)
+      parameters:
+      - description: ID переговорки
+        in: path
+        name: roomId
+        required: true
+        type: string
+      - description: Дата в формате YYYY-MM-DD
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: slots
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Список доступных слотов
+      tags:
+      - Slots
+  /rooms/create:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новую переговорку (только admin)
+      parameters:
+      - description: Информация о переговорке
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: room
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Создать переговорку
+      tags:
+      - Rooms
+  /rooms/list:
+    get:
+      description: Возвращает список всех переговорок (доступно admin и user)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: rooms
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Список переговорок
+      tags:
+      - Rooms
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
